@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  webpill-postgres:
+    container_name: webpill-postgres
+    hostname: webpill-postgres
+    image: postgres:13.0-alpine
+    env_file:
+      - ./app/.env
+    networks:
+      - webpill-main-net
+    expose:
+      - "5432"
+    ports:
+      - "5432:5432"
+    volumes:
+      - "postgresql-data:/var/lib/postgresql/data"
+    command: -p 5432
+
+  webpill-app:
+    container_name: webpill-app
+    hostname: webpill-app
+    build:
+      context: ./app
+      args:
+        REPO_PATH: ./app
+      dockerfile: Dockerfile
+    env_file:
+      - ./app/.env
+    command: python manage.py run -h 0.0.0.0
+    environment:
+      - "RUN=1"
+    volumes:
+      - ./app/:/usr/src/app/
+    ports:
+      - "5000:5000"
+    depends_on:
+      - webpill-postgres
+    working_dir: /app
+    networks:
+      - webpill-main-net
+  
+volumes:
+  postgresql-data:
+
+networks:
+  webpill-main-net:
+  
